@@ -6,12 +6,12 @@ BIOS_INTERRUPT equ 0x10
 PROTECTED_MODE_STACK equ 0xffffffff
 REAL_MODE_STACK equ 0xffff
 
-mbr_main:																	; Main sequence
+mbr_main:						; Main sequence
 	mov sp, REAL_MODE_STACK
 	call enter_protected_mode	
 
 enter_protected_mode:
-	cli   																	; Clear interrupts
+	cli   						; Clear interrupts
 	lgdt [global_descriptor_table_register]  
 	mov eax, cr0 
 	or al, 1     
@@ -22,11 +22,11 @@ enter_protected_mode:
 [bits 32]
 
 protected_mode_main:
-	sti																		; Restore interrupts
-	mov esp, PROTECTED_MODE_STACK  											; Reset stack
-	call start_vm86_mode													; Enter vm8086 mode
+	sti								; Restore interrupts
+	mov esp, PROTECTED_MODE_STACK  			; Reset stack
+	call start_vm86_mode		; Enter vm8086 mode
 
-	mov al, '!'																; Character to print
+	mov al, '!'					; Character to print
 	push PRINT_CHAR_BIOS
 	call bios_interrupt
 	jmp exit
@@ -34,28 +34,28 @@ protected_mode_main:
 
 start_vm86_mode:
 	xor eax, eax
-	mov ax, 0x00                											; The descriptor of the tss in the gdt //TODO
-	ltr ax																	; load the task register
+	mov ax, 0x00                ; The descriptor of the tss in the gdt //TODO
+	ltr ax						; load the task register
 	ret
 
 
-bios_interrupt:																; Function used to call an interrupt in v8086 mode
+bios_interrupt:					; Function used to call an interrupt in v8086 mode
 	push ebp
 	mov ebp, esp
 
-	mov ah, [ebp + 4]														; Set the function number 
-	int BIOS_INTERRUPT														; Call the bios interrupt
+	mov ah, [ebp + 4]			; Set the function number 
+	int BIOS_INTERRUPT					; Call the bios interrupt
 
 	pop ebp
 	add esp, 4
-	call start_vm86_mode													; Restart vm8086 mode
+	call start_vm86_mode		; Restart vm8086 mode
 	add esp, 2
 	ret
 
 global_descriptor_table: 
 	dd 0x00000000, 0x00000000
-	dd 0xFFFFFFFF, 0x00CF9C00    											; Code segment
-	dd 0xFFFFFFFF, 0x00CF9200    											; Data segment
+	dd 0xFFFFFFFF, 0x00CF9C00    ; Code segment
+	dd 0xFFFFFFFF, 0x00CF9200    ; Data segment
 global_descriptor_table_end:
 
 global_descriptor_table_register:
@@ -66,4 +66,4 @@ exit:
 	nop
 
 times 510 - ($ - $$) db 0
-dw 0xAA55                  													; MBR Magic
+dw 0xAA55                  ; MBR Magic
