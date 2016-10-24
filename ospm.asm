@@ -2,11 +2,12 @@
 [org 0x7C00]
 
 
+
 mbr_main:						; Main sequence
 	mov sp, 0xffff
-	call enable_protected_mode	
+	call enter_protected_mode	
 
-enable_protected_mode:
+enter_protected_mode:
 	cli       
 	lgdt [gdtr]  
 	mov eax, cr0 
@@ -17,7 +18,7 @@ enable_protected_mode:
 
 [bits 32]
 protected_mode_main:
-	mov esp, 0xffff  			; Reset stack
+	mov esp, 0xffffffff  			; Reset stack
 	call start_vm86_mode		; Enter vm8086 mode
 
 	mov al, '!'					; Character to print
@@ -27,7 +28,7 @@ protected_mode_main:
 
 start_vm86_mode:
 	xor eax, eax
-	mov ax, 0x??                ; The descriptor of the tss in the gdt
+	mov ax, 0xXX                ; The descriptor of the tss in the gdt //TODO
 	ltr ax						; load the task register
 	ret
 
