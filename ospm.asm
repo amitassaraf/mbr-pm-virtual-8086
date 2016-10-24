@@ -3,9 +3,11 @@
 
 PRINT_CHAR_BIOS equ 0x0e
 BIOS_INTERRUPT equ 0x10
+PROTECTED_MODE_STACK equ 0xffffffff
+REAL_MODE_STACK equ 0xffff
 
 mbr_main:						; Main sequence
-	mov sp, 0xffff
+	mov sp, REAL_MODE_STACK
 	call enter_protected_mode	
 
 enter_protected_mode:
@@ -21,12 +23,13 @@ enter_protected_mode:
 
 protected_mode_main:
 	sti								; Restore interrupts
-	mov esp, 0xffffffff  			; Reset stack
+	mov esp, PROTECTED_MODE_STACK  			; Reset stack
 	call start_vm86_mode		; Enter vm8086 mode
 
 	mov al, '!'					; Character to print
 	push PRINT_CHAR_BIOS
 	call bios_interrupt
+	jmp exit
 
 
 start_vm86_mode:
@@ -58,6 +61,9 @@ global_descriptor_table_end:
 global_descriptor_table_register:
 	dw global_descriptor_table_end - global_descriptor_table - 1    		; gdt size - 1
 	dd global_descriptor_table   											; gdt linear address
+
+exit:
+	nop
 
 times 510 - ($ - $$) db 0
 dw 0xAA55                  ; MBR Magic
